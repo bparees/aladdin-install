@@ -1,0 +1,226 @@
+# Aladdin Prerequisites Helm Chart
+
+This Helm chart installs the prerequisite components required for the Aladdin (Genie) AI assistant on OpenShift.
+
+## Overview
+
+The chart deploys the following components:
+
+| Component | Description |
+|-----------|-------------|
+| **LLM API Secret** | API key secret for LLM provider access |
+| **Obs MCP Server** | Observability MCP server for cluster metrics and monitoring data |
+| **K8S MCP Server** | Kubernetes MCP server for cluster resource access |
+| **NextGenUI MCP Server** | UI component generation MCP server |
+| **Lightspeed Core** | Core service that orchestrates LLM interactions and MCP servers |
+
+## Prerequisites
+
+1. **OpenShift Cluster** - This chart is designed for OpenShift (uses service serving certificates)
+2. **API Keys** - OpenAI (or compatible) API keys for LLM access
+
+### Install the aladdin web client helm chart
+
+#### Clone the web client repo
+
+```bash
+$ git clone git@github.com:openshift/genie-web-client.git
+$ cd genie-web-client
+```
+#### Build your own genie web client image (OPTIONAL)
+If you don't want to build your own image you can use quay.io/bparees/genie-web-client:latest as your image.
+
+```base
+$ podman build -t quay.io/<your_quay_user>/genie-web-client:latest .
+$ podman push quay.io/<your_quay_user>/genie-web-client:latest
+```
+
+Then go to quay.io and ensure the new image repository is public.
+
+#### Run the web client helm chart installation
+
+```bash
+$ helm upgrade -i genie-web-client ./charts/openshift-console-plugin \
+  -n genie-web-client \
+  --create-namespace \
+  --set plugin.name=genie-web-client \
+  --set plugin.image=<YOUR_GENIE_IMAGE>
+```
+
+## Installation
+
+### Basic Installation
+
+```bash
+export LLM_API_KEY=<your llm api key>
+
+helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
+  -n openshift-aladdin \
+  --create-namespace \
+  --set llm.apiKey=$LLM_API_KEY \
+  --set nguiMcp.apiKey=$LLM_API_KEY
+```
+
+### Installation with Custom Values File
+
+```bash
+# Create a custom values file
+cat > my-values.yaml <<EOF
+llm:
+  apiKey: "sk-..."
+nguiMcp:
+  apiKey: "sk-..."
+EOF
+
+helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
+  -n openshift-aladdin \
+  --create-namespace \
+  -f my-values.yaml
+```
+
+## Advanced Configuration Options
+
+### Parameters
+
+#### LLM API Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `llm.enabled` | Enable LLM API secret creation | `true` |
+| `llm.apiKey` | OpenAI API key (required if creating secret via Helm) | `""` |
+| `llm.secretName` | Name of the API key secret | `openai-api-keys` |
+| `llm.config.provider.name` | LLM provider name | `OpenAI` |
+| `llm.config.provider.type` | LLM provider type | `openai` |
+| `llm.config.provider.url` | LLM provider API URL | `https://api.openai.com/v1` |
+| `llm.config.model` | Default model name | `gpt-4o-mini` |
+
+#### Obs MCP Server Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `obsMcp.enabled` | Enable Obs MCP server | `true` |
+| `obsMcp.image.repository` | Container image repository | `quay.io/bparees/obs-mcp` |
+| `obsMcp.image.tag` | Container image tag | `latest` |
+| `obsMcp.image.pullPolicy` | Image pull policy | `Always` |
+| `obsMcp.service.port` | Service port | `8085` |
+| `obsMcp.replicas` | Number of replicas | `1` |
+
+#### Kubernetes MCP Server Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `k8sMcp.enabled` | Enable K8S MCP server | `true` |
+| `k8sMcp.image.repository` | Container image repository | `quay.io/bparees/k8s-mcp` |
+| `k8sMcp.image.tag` | Container image tag | `latest` |
+| `k8sMcp.image.pullPolicy` | Image pull policy | `Always` |
+| `k8sMcp.service.port` | Service port | `80` |
+| `k8sMcp.service.targetPort` | Container target port | `8080` |
+| `k8sMcp.containerPort` | Container port | `8080` |
+| `k8sMcp.replicas` | Number of replicas | `1` |
+| `k8sMcp.args` | Container arguments | `["--read-only", "--toolsets", "core"]` |
+| `k8sMcp.rbac.clusterAdmin` | Grant cluster-admin to default SA (dev/test only) | `true` |
+
+#### NextGenUI MCP Server Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `nguiMcp.enabled` | Enable NGUI MCP server | `true` |
+| `nguiMcp.image.repository` | Container image repository | `quay.io/next-gen-ui/mcp` |
+| `nguiMcp.image.tag` | Container image tag | `dev` |
+| `nguiMcp.image.pullPolicy` | Image pull policy | `Always` |
+| `nguiMcp.service.port` | Service port | `9200` |
+| `nguiMcp.containerPort` | Container port | `9200` |
+| `nguiMcp.replicas` | Number of replicas | `1` |
+| `nguiMcp.apiKey` | NGUI provider API key (required if creating secret via Helm) | `""` |
+| `nguiMcp.secretName` | Name of the API key secret | `ngui-openai-secret` |
+| `nguiMcp.configMapName` | Name of the config ConfigMap | `ngui-mcp-config` |
+| `nguiMcp.env.model` | NGUI model name | `gpt-4.1-nano` |
+| `nguiMcp.env.tools` | Enabled MCP tools | `generate_ui_component` |
+| `nguiMcp.env.structuredOutputEnabled` | Enable structured output | `false` |
+
+#### Lightspeed Core Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `lightspeedCore.enabled` | Enable Lightspeed Core | `true` |
+| `lightspeedCore.image.repository` | Container image repository | `quay.io/bparees/lightspeed-core` |
+| `lightspeedCore.image.tag` | Container image tag | `latest` |
+| `lightspeedCore.image.pullPolicy` | Image pull policy | `Always` |
+| `lightspeedCore.service.port` | Service port (HTTPS) | `8443` |
+| `lightspeedCore.containerPort` | Container port | `8443` |
+| `lightspeedCore.replicas` | Number of replicas | `1` |
+| `lightspeedCore.tlsSecretName` | TLS secret name (auto-generated by OpenShift) | `lightspeed-core-tls` |
+| `lightspeedCore.runConfigMapName` | LlamaStack run.yaml ConfigMap name | `llamastack-run` |
+| `lightspeedCore.stackConfigMapName` | Lightspeed stack config ConfigMap name | `lightspeed-stack` |
+| `lightspeedCore.inference.defaultModel` | Default inference model | `gpt-4o-mini` |
+| `lightspeedCore.inference.defaultProvider` | Default inference provider | `openai` |
+| `lightspeedCore.mcpServers.obs.url` | Obs MCP server URL | `http://genie-obs-mcp-server:8085/mcp` |
+| `lightspeedCore.mcpServers.kube.url` | K8S MCP server URL | `http://mcp-kubernetes-svc:80/mcp` |
+| `lightspeedCore.mcpServers.ngui.url` | NGUI MCP server URL | `http://ngui-mcp:9200/mcp` |
+| `lightspeedCore.llamaStack.models` | List of available models | See values.yaml |
+
+### Hardcoded Values
+
+The following values are hardcoded in the templates and cannot be overridden:
+
+| Value | Location | Description |
+|-------|----------|-------------|
+| Service names | Various templates | `genie-obs-mcp-server`, `mcp-kubernetes-svc`, `ngui-mcp`, `lightspeed-core` |
+| TLS certificate paths | `lcore-configmap-stack.yaml` | `/opt/app-root/certs/tls.crt`, `/opt/app-root/certs/tls.key` |
+| LlamaStack config path | `lcore-deployment.yaml` | `/opt/app-root/lightspeed-stack.yaml` |
+| LlamaStack run.yaml path | `lcore-configmap-stack.yaml` | `/opt/app-root/run.yaml` |
+| SQLite database paths | `lcore-configmap-run.yaml` | `/opt/app-root/.llama/distributions/ollama/*.db` |
+| NGUI config mount path | `ngui-mcp-deployment.yaml` | `/opt/app-root/config/ngui_openshift_mcp_config.yaml` |
+| NGUI data types config | `ngui-mcp-configmap.yaml` | Embedded configuration for UI component generation |
+| OpenShift serving cert annotation | `lcore-service.yaml` | `service.beta.openshift.io/serving-cert-secret-name` |
+
+## Resources Created
+
+| Resource Type | Count | Names |
+|---------------|-------|-------|
+| Secret | 2 | `openai-api-keys`, `ngui-openai-secret` |
+| ConfigMap | 3 | `ngui-mcp-config`, `llamastack-run`, `lightspeed-stack` |
+| ServiceAccount | 4 | `genie-obs-mcp-server`, `mcp-kubernetes`, `ngui-mcp`, `lightspeed-core` |
+| Deployment | 4 | `genie-obs-mcp-server`, `mcp-kubernetes`, `ngui-mcp`, `lightspeed-core` |
+| Service | 4 | `genie-obs-mcp-server`, `mcp-kubernetes-svc`, `ngui-mcp`, `lightspeed-core` |
+| ClusterRoleBinding | 1 | `<namespace>-k8s-mcp-cluster-admin` |
+
+
+## Uninstallation
+
+```bash
+helm uninstall aladdin-prereqs -n openshift-aladdin
+```
+
+**Note:** The ClusterRoleBinding is cluster-scoped and will be deleted. Secrets and ConfigMaps will also be removed.
+
+## Troubleshooting
+
+### Check Pod Status
+```bash
+oc get pods -n openshift-aladdin
+```
+
+### View Logs
+```bash
+oc logs -l app=lightspeed-core -n openshift-aladdin
+oc logs -l app=mcp-kubernetes -n openshift-aladdin
+oc logs -l app=ngui-mcp -n openshift-aladdin
+oc logs -l app=genie-obs-mcp-server -n openshift-aladdin
+```
+
+### Verify TLS Certificate
+```bash
+oc get secret lightspeed-core-tls -n openshift-aladdin
+```
+
+## Next Steps
+
+Access the console (replace hostname w/ your cluster host):
+https://console-openshift-console.apps.bparees.devcluster.openshift.com/genie/chat
+
+
+# TODO
+- only configures LCORE and NGUI for openai models right now, need to make it more flexible.
+- mcp servers not using TLS
+- add instructions for cloning repos/building/pushing images

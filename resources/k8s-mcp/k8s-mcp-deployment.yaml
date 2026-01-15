@@ -1,0 +1,27 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-kubernetes
+  labels:
+    app: mcp-kubernetes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-kubernetes
+  template:
+    metadata:
+      labels:
+        app: mcp-kubernetes
+    spec:
+      containers:
+        - name: mcp-kubernetes
+          image: quay.io/bparees/k8s-mcp:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          args:
+            - "--read-only"
+            - "--toolsets"
+            - "core"

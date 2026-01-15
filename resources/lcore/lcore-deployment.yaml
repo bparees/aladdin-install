@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lightspeed-core
+  labels:
+    app: lightspeed-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lightspeed-core
+  template:
+    metadata:
+      labels:
+        app: lightspeed-core
+    spec:
+      containers:
+      - name: lightspeed-core
+        image: quay.io/bparees/lightspeed-core:latest
+        imagePullPolicy: IfNotPresent
+        # command:
+        # - "sleep"
+        # - "120"
+        args:
+        - "-c"
+        - "/opt/app-root/lightspeed-stack.yaml"
+        env:
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: openai-api-keys
+              key: apitoken
+        ports:
+        - containerPort: 8443
+        volumeMounts:
+        - name: llamastack-run
+          mountPath: /opt/app-root/run.yaml
+          subPath: run.yaml
+        - name: lightspeed-stack
+          mountPath: /opt/app-root/lightspeed-stack.yaml
+          subPath: lightspeed-stack.yaml
+        - name: dot-llama
+          mountPath: /opt/app-root/.llama
+        - name: lightspeed-core-tls
+          mountPath: /opt/app-root/certs
+      volumes:
+      - name: llamastack-run
+        configMap:
+          name: llamastack-run
+      - name: lightspeed-stack
+        configMap:
+          name: lightspeed-stack
+      - name: dot-llama
+        emptyDir: {}
+      - name: lightspeed-core-tls
+        secret:
+          secretName: lightspeed-core-tls

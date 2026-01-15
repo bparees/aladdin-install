@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ngui-mcp
+  labels:
+    app: ngui-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ngui-mcp
+  template:
+    metadata:
+      labels:
+        app: ngui-mcp
+    spec:
+      containers:
+      - name: ngui-mcp
+        image: quay.io/next-gen-ui/mcp:dev
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9200
+        env:
+        - name: MCP_PORT
+          value: "9200"
+        - name: NGUI_MODEL
+          value: "gpt-4.1-nano"
+        - name: NGUI_CONFIG_PATH
+          value: "/opt/app-root/config/ngui_openshift_mcp_config.yaml"
+        - name: MCP_TOOLS
+          value: "generate_ui_component"
+        - name: MCP_STRUCTURED_OUTPUT_ENABLED
+          value: "false"
+        - name: NGUI_PROVIDER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ngui-openai-secret
+              key: NGUI_PROVIDER_API_KEY
+        volumeMounts:
+        - name: config
+          mountPath: /opt/app-root/config/ngui_openshift_mcp_config.yaml
+          subPath: ngui_openshift_mcp_config.yaml
+      volumes:
+      - name: config
+        configMap:
+          name: ngui-mcp-config

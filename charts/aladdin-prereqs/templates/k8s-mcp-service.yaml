@@ -1,0 +1,18 @@
+{{- if .Values.k8sMcp.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-kubernetes-svc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "aladdin-prereqs.k8sMcp.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "aladdin-prereqs.k8sMcp.selectorLabels" . | nindent 4 }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.k8sMcp.service.port }}
+      targetPort: {{ .Values.k8sMcp.service.targetPort }}
+  type: ClusterIP
+{{- end }}
+
