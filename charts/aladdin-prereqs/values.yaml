@@ -3,7 +3,6 @@
 
 # LLM API configuration
 llm:
-  enabled: true
   # API key for OpenAI (or compatible provider)
   # This should be overridden via --set or values file
   apiKey: ""
