@@ -86,6 +86,21 @@ helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
   --create-namespace \
   -f my-values.yaml
 ```
+### Installation with customized model + provider
+By default this chart configures llamastack and Lightspeed Core to use the openai provider with the gpt-4o-mini model.  If you want to use a different provider or model you can override the parameter values by customizing the [charts/aladdin-prereqs/values.yaml](charts/aladdin-prereqs/values.yaml), or on the command line:
+
+```bash
+helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
+  -n openshift-aladdin \
+  --create-namespace \
+  --set llm.apiKey=$LLM_API_KEY \
+  --set nguiMcp.apiKey=$LLM_API_KEY \
+  --set lightspeedCore.models.providerId=anthropic \
+  --set lightspeedCore.models.providerType=remote::anthropic \
+  --set lightspeedCore.models.modelId=claude-3-sonnet \
+  --set lightspeedCore.models.providerModelId=claude-3-sonnet-20240229
+```
+
 
 ## Uninstallation
 
