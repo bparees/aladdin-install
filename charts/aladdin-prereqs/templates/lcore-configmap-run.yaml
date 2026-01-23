@@ -32,8 +32,8 @@ data:
       type: sqlite
     providers:
       inference:
-        - provider_id: openai
-          provider_type: remote::openai
+        - provider_id: {{ .Values.lightspeedCore.models.providerId }}
+          provider_type: {{ .Values.lightspeedCore.models.providerType }}
           config:
             api_key: ${env.LLM_API_KEY}
       agents:
@@ -87,11 +87,9 @@ data:
     shields: []
     vector_dbs: []
     models:
-      {{- range .Values.lightspeedCore.llamaStack.models }}
-      - model_id: {{ .modelId }}
-        provider_id: {{ .providerId }}
-        model_type: {{ .modelType }}
-        provider_model_id: {{ .providerModelId }}
-      {{- end }}
+      - provider_id: {{ .Values.lightspeedCore.models.providerId }}
+        model_id: {{ .Values.lightspeedCore.models.modelId }}
+        model_type: {{ .Values.lightspeedCore.models.modelType }}
+        provider_model_id: {{ .Values.lightspeedCore.models.providerModelId }}
 {{- end }}
 

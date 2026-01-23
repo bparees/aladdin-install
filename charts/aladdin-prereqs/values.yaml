@@ -102,16 +102,12 @@ lightspeedCore:
     ngui:
       url: "http://ngui-mcp:9200/mcp"
   # LlamaStack run.yaml configuration
-  llamaStack:
-    models:
-      - modelId: gpt-4o-mini
-        providerId: openai
-        modelType: llm
-        providerModelId: gpt-4o-mini
-      - modelId: gpt-4o
-        providerId: openai
-        modelType: llm
-        providerModelId: gpt-4o
+  models:
+    providerId: openai
+    providerType: remote::openai
+    modelId: gpt-4o-mini
+    modelType: llm
+    providerModelId: gpt-4o-mini
 
 # ConsolePlugin patch configuration
 # Patches an existing ConsolePlugin to point the "ols" proxy to lightspeed-core

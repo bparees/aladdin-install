@@ -34,8 +34,8 @@ data:
       sqlite:
         db_path: "/tmp/data/conversation-cache.db"
     inference:
-      default_model: {{ .Values.lightspeedCore.inference.defaultModel }}
-      default_provider: {{ .Values.lightspeedCore.inference.defaultProvider }}
+      default_model: {{ .Values.lightspeedCore.models.modelId }}
+      default_provider: {{ .Values.lightspeedCore.models.providerId }}
     mcp_servers:
       - name: "obs"
         provider_id: "model-context-protocol"
