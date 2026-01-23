@@ -111,9 +111,47 @@ helm uninstall aladdin-prereqs -n openshift-aladdin
 **Note:** The ClusterRoleBinding is cluster-scoped and will be deleted. Secrets and ConfigMaps will also be removed.
 
 
-## Advanced Configuration Options
+## Advanced Options
 
-### Parameters
+### Building custom images
+By default this chart uses a set of images that live under quay.io/bparees, but you want to use your own images you can clone the various repos and build/push the images and then reference them using the appropriate chart parameters.
+
+#### Observability MCP Server
+
+1. Clone https://github.com/rhobs/obs-mcp
+1. `podman build -t quay.io/<your quay org>/obs-mcp:<some-tag>`
+1. `podman push quay.io/<your quay org>/obs-mcp:<some-tag>`
+1. Ensure the quay repository is public
+1. Override the `obsMcp.image.repository` and `obsMcp.image.tag` chart parameters
+
+#### Kubernetes MCP Server
+
+1. Clone https://github.com/containers/kubernetes-mcp-server
+1. `podman build -t quay.io/<your quay org>/k8s-mcp:<some-tag>`
+1. `podman push quay.io/<your quay org>/k8s-mcp:<some-tag>`
+1. Ensure the quay repository is public
+1. Override the `k8sMcp.image.repository` and `k8sMcp.image.tag` chart parameters
+
+#### NextGenUI MCP Server
+
+1. Clone https://github.com/RedHat-UX/next-gen-ui-agent/
+1. `cd libs/next_gen_ui_mcp/`
+1. `podman build -t quay.io/<your quay org>/nextgenui-mcp:<some-tag>`
+1. `podman push quay.io/<your quay org>/nextgenui-mcp:<some-tag>`
+1. Ensure the quay repository is public
+1. Override the `nguiMcp.image.repository` and `nguiMcp.image.tag` chart parameters
+
+#### Lightspeed Core
+
+1. Clone https://github.com/lightspeed-core/lightspeed-stack
+1. `podman build -t quay.io/<your quay org>/lightspeed-core:<some-tag>`
+1. `podman push quay.io/<your quay org>/lightspeed-core:<some-tag>`
+1. Ensure the quay repository is public
+1. Override the `lightspeedCore.image.repository` and `lightspeedCore.image.tag` chart parameters
+
+### Configuring Parameters
+
+The chart exposes a number of parameters that can be customized to alter the backend configuration.  Below is a comprehensive list of the available parameters and their default values.
 
 #### LLM API Parameters
 
@@ -253,6 +291,4 @@ oc get secret lightspeed-core-tls -n openshift-aladdin
 
 
 # TODO
-- only configures LCORE and NGUI for openai models right now, need to make it more flexible.
 - mcp servers not using TLS
-- add instructions for cloning repos/building/pushing images
