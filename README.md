@@ -18,8 +18,13 @@ The chart deploys the following components:
 
 1. **OpenShift Cluster** - This chart is designed for OpenShift (uses service serving certificates)
 2. **API Keys** - OpenAI (or compatible) API keys for LLM access
+3. The genie web client is installed (steps for this listed below)
 
 ### Install the aladdin web client helm chart
+
+To run aladdin you must have the aladdin web client installed, it comes from a separate
+repo.  The following steps guide you through pulling down that repo and installing
+its helm chart.
 
 #### Clone the web client repo
 
@@ -49,6 +54,8 @@ $ helm upgrade -i genie-web-client ./charts/openshift-console-plugin \
 
 ## Installation
 
+Once you have the prereq steps completed, you can switch to the aladdin-installer repo to install the backend aladdin helm chart.
+
 ### Basic Installation
 
 ```bash
@@ -60,6 +67,8 @@ helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
   --set llm.apiKey=$LLM_API_KEY \
   --set nguiMcp.apiKey=$LLM_API_KEY
 ```
+
+When it finishes the chart will print out the URL need to access the aladdin console.
 
 ### Installation with Custom Values File
 
@@ -77,6 +86,15 @@ helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
   --create-namespace \
   -f my-values.yaml
 ```
+
+## Uninstallation
+
+```bash
+helm uninstall aladdin-prereqs -n openshift-aladdin
+```
+
+**Note:** The ClusterRoleBinding is cluster-scoped and will be deleted. Secrets and ConfigMaps will also be removed.
+
 
 ## Advanced Configuration Options
 
@@ -186,13 +204,6 @@ The following values are hardcoded in the templates and cannot be overridden:
 | ClusterRoleBinding | 1 | `<namespace>-k8s-mcp-cluster-admin` |
 
 
-## Uninstallation
-
-```bash
-helm uninstall aladdin-prereqs -n openshift-aladdin
-```
-
-**Note:** The ClusterRoleBinding is cluster-scoped and will be deleted. Secrets and ConfigMaps will also be removed.
 
 ## Troubleshooting
 
@@ -214,10 +225,6 @@ oc logs -l app=genie-obs-mcp-server -n openshift-aladdin
 oc get secret lightspeed-core-tls -n openshift-aladdin
 ```
 
-## Next Steps
-
-Access the console (replace hostname w/ your cluster host):
-https://console-openshift-console.apps.bparees.devcluster.openshift.com/genie/chat
 
 
 # TODO
