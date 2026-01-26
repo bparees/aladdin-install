@@ -1,6 +1,6 @@
-# Aladdin Prerequisites Helm Chart
+# Aladdin Backend Helm Chart
 
-This Helm chart installs the prerequisite components required for the Aladdin (Genie) AI assistant on OpenShift.
+This Helm chart installs the backend components required for the Aladdin AI assistant on OpenShift.  The frontend is installed via a separate chart, see instructions below.
 
 ## Overview
 
