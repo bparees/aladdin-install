@@ -192,8 +192,8 @@ The chart exposes a number of parameters that can be customized to alter the bac
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `nguiMcp.enabled` | Enable NGUI MCP server | `true` |
-| `nguiMcp.image.repository` | Container image repository | `quay.io/next-gen-ui/mcp` |
-| `nguiMcp.image.tag` | Container image tag | `dev` |
+| `nguiMcp.image.repository` | Container image repository | `quay.io/bparees/ngui-mcp` |
+| `nguiMcp.image.tag` | Container image tag | `latest` |
 | `nguiMcp.image.pullPolicy` | Image pull policy | `Always` |
 | `nguiMcp.service.port` | Service port | `9200` |
 | `nguiMcp.containerPort` | Container port | `9200` |

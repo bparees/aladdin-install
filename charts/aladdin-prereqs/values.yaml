@@ -55,8 +55,8 @@ k8sMcp:
 nguiMcp:
   enabled: true
   image:
-    repository: quay.io/next-gen-ui/mcp
-    tag: dev
+    repository: quay.io/bparees/ngui-mcp
+    tag: latest
     pullPolicy: Always
   service:
     port: 9200
