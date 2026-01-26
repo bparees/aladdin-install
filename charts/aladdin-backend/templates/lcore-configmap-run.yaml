@@ -13,11 +13,11 @@ data:
 
     apis:
       - agents
+      - files
       - safety
       - vector_io
       - tool_runtime
       - inference
-
     benchmarks: []
     container_image: null
     datasets: []
@@ -36,6 +36,14 @@ data:
           provider_type: {{ .Values.lightspeedCore.models.providerType }}
           config:
             api_key: ${env.LLM_API_KEY}
+      files:
+          - config:
+              metadata_store:
+                table_name: files_metadata
+                backend: sql_default
+              storage_dir: /opt/app-root/.llama/storage/files
+            provider_id: meta-reference-files
+            provider_type: inline::localfs
       agents:
         - config:
             persistence:
