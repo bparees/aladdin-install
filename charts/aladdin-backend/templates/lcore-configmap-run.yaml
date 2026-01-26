@@ -5,7 +5,7 @@ metadata:
   name: {{ .Values.lightspeedCore.runConfigMapName }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "aladdin-prereqs.lightspeedCore.labels" . | nindent 4 }}
+    {{- include "aladdin-backend.lightspeedCore.labels" . | nindent 4 }}
 data:
   run.yaml: |
     version: "2"

@@ -5,7 +5,7 @@ metadata:
   name: {{ .Values.lightspeedCore.stackConfigMapName }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "aladdin-prereqs.lightspeedCore.labels" . | nindent 4 }}
+    {{- include "aladdin-backend.lightspeedCore.labels" . | nindent 4 }}
 data:
   lightspeed-stack.yaml: |
     name: Lightspeed Core Service (LCS)

@@ -5,10 +5,10 @@ metadata:
   name: genie-obs-mcp-server
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "aladdin-prereqs.obsMcp.labels" . | nindent 4 }}
+    {{- include "aladdin-backend.obsMcp.labels" . | nindent 4 }}
 spec:
   selector:
-    {{- include "aladdin-prereqs.obsMcp.selectorLabels" . | nindent 4 }}
+    {{- include "aladdin-backend.obsMcp.selectorLabels" . | nindent 4 }}
   ports:
     - protocol: TCP
       port: {{ .Values.obsMcp.service.port }}

@@ -5,16 +5,16 @@ metadata:
   name: lightspeed-core
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "aladdin-prereqs.lightspeedCore.labels" . | nindent 4 }}
+    {{- include "aladdin-backend.lightspeedCore.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.lightspeedCore.replicas }}
   selector:
     matchLabels:
-      {{- include "aladdin-prereqs.lightspeedCore.selectorLabels" . | nindent 6 }}
+      {{- include "aladdin-backend.lightspeedCore.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "aladdin-prereqs.lightspeedCore.selectorLabels" . | nindent 8 }}
+        {{- include "aladdin-backend.lightspeedCore.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: lightspeed-core
       containers:

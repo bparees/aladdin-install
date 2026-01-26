@@ -5,10 +5,10 @@ metadata:
   name: ngui-mcp
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "aladdin-prereqs.nguiMcp.labels" . | nindent 4 }}
+    {{- include "aladdin-backend.nguiMcp.labels" . | nindent 4 }}
 spec:
   selector:
-    {{- include "aladdin-prereqs.nguiMcp.selectorLabels" . | nindent 4 }}
+    {{- include "aladdin-backend.nguiMcp.selectorLabels" . | nindent 4 }}
   ports:
     - name: http
       port: {{ .Values.nguiMcp.service.port }}

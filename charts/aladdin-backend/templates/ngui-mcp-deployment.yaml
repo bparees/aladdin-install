@@ -5,16 +5,16 @@ metadata:
   name: ngui-mcp
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "aladdin-prereqs.nguiMcp.labels" . | nindent 4 }}
+    {{- include "aladdin-backend.nguiMcp.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.nguiMcp.replicas }}
   selector:
     matchLabels:
-      {{- include "aladdin-prereqs.nguiMcp.selectorLabels" . | nindent 6 }}
+      {{- include "aladdin-backend.nguiMcp.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "aladdin-prereqs.nguiMcp.selectorLabels" . | nindent 8 }}
+        {{- include "aladdin-backend.nguiMcp.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: ngui-mcp
       containers:

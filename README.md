@@ -61,7 +61,7 @@ Once you have the prereq steps completed, you can switch to the aladdin-installe
 ```bash
 export LLM_API_KEY=<your llm api key>
 
-helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
+helm upgrade -i aladdin-backend ./charts/aladdin-backend \
   -n openshift-aladdin \
   --create-namespace \
   --set lightspeedCore.llm.apiKey=$LLM_API_KEY \
@@ -82,16 +82,16 @@ nguiMcp:
   apiKey: "sk-..."
 EOF
 
-helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
+helm upgrade -i aladdin-backend ./charts/aladdin-backend \
   -n openshift-aladdin \
   --create-namespace \
   -f my-values.yaml
 ```
 ### Installation with customized model + provider
-By default this chart configures llamastack and Lightspeed Core to use the openai provider with the gpt-4o-mini model.  If you want to use a different provider or model you can override the parameter values by customizing the [charts/aladdin-prereqs/values.yaml](charts/aladdin-prereqs/values.yaml), or on the command line:
+By default this chart configures llamastack and Lightspeed Core to use the openai provider with the gpt-4o-mini model.  If you want to use a different provider or model you can override the parameter values by customizing the [charts/aladdin-backend/values.yaml](charts/aladdin-backend/values.yaml), or on the command line:
 
 ```bash
-helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
+helm upgrade -i aladdin-backend ./charts/aladdin-backend \
   -n openshift-aladdin \
   --create-namespace \
   --set lightspeedCore.llm.apiKey=$LLM_API_KEY \
@@ -106,7 +106,7 @@ helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
 ## Uninstallation
 
 ```bash
-helm uninstall aladdin-prereqs -n openshift-aladdin
+helm uninstall aladdin-backend -n openshift-aladdin
 ```
 
 **Note:** The ClusterRoleBinding is cluster-scoped and will be deleted. Secrets and ConfigMaps will also be removed.

@@ -5,7 +5,7 @@ metadata:
   name: {{ .Values.nguiMcp.configMapName }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "aladdin-prereqs.nguiMcp.labels" . | nindent 4 }}
+    {{- include "aladdin-backend.nguiMcp.labels" . | nindent 4 }}
 data:
   ngui_openshift_mcp_config.yaml: |
     ---
