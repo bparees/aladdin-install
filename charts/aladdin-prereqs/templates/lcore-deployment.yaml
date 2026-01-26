@@ -28,7 +28,7 @@ spec:
             - name: LLM_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.llm.secretName }}
+                  name: {{ .Values.lightspeedCore.llm.apiKeySecretName }}
                   key: apitoken
           ports:
             - containerPort: {{ .Values.lightspeedCore.containerPort }}

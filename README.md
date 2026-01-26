@@ -64,7 +64,7 @@ export LLM_API_KEY=<your llm api key>
 helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
   -n openshift-aladdin \
   --create-namespace \
-  --set llm.apiKey=$LLM_API_KEY \
+  --set lightspeedCore.llm.apiKey=$LLM_API_KEY \
   --set nguiMcp.apiKey=$LLM_API_KEY
 ```
 
@@ -75,8 +75,9 @@ When it finishes the chart will print out the URL need to access the aladdin con
 ```bash
 # Create a custom values file
 cat > my-values.yaml <<EOF
-llm:
-  apiKey: "sk-..."
+lightspeedCore:
+  llm:
+    apiKey: "sk-..."
 nguiMcp:
   apiKey: "sk-..."
 EOF
@@ -93,7 +94,7 @@ By default this chart configures llamastack and Lightspeed Core to use the opena
 helm upgrade -i aladdin-prereqs ./charts/aladdin-prereqs \
   -n openshift-aladdin \
   --create-namespace \
-  --set llm.apiKey=$LLM_API_KEY \
+  --set lightspeedCore.llm.apiKey=$LLM_API_KEY \
   --set nguiMcp.apiKey=$LLM_API_KEY \
   --set lightspeedCore.models.providerId=anthropic \
   --set lightspeedCore.models.providerType=remote::anthropic \
@@ -153,13 +154,6 @@ By default this chart uses a set of images that live under quay.io/bparees, but 
 
 The chart exposes a number of parameters that can be customized to alter the backend configuration.  Below is a comprehensive list of the available parameters and their default values.
 
-#### LLM API Parameters
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `llm.apiKey` | LLM API key (required) | `""` |
-| `llm.secretName` | Name of the API key secret | `llm-api-key` |
-
 #### Obs MCP Server Parameters
 
 | Parameter | Description | Default |
@@ -210,6 +204,8 @@ The chart exposes a number of parameters that can be customized to alter the bac
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `lightspeedCore.enabled` | Enable Lightspeed Core | `true` |
+| `lightspeedCore.llm.apiKey` | LLM API key (required) | `""` |
+| `lightspeedCore.llm.apiKeySecretName` | Name of the API key secret | `lcore-llm-api-key` |
 | `lightspeedCore.image.repository` | Container image repository | `quay.io/bparees/lightspeed-core` |
 | `lightspeedCore.image.tag` | Container image tag | `latest` |
 | `lightspeedCore.image.pullPolicy` | Image pull policy | `Always` |
@@ -257,7 +253,7 @@ The following values are hardcoded in the templates and cannot be overridden:
 
 | Resource Type | Count | Names |
 |---------------|-------|-------|
-| Secret | 2 | `llm-api-key`, `ngui-llm-api-key` |
+| Secret | 2 | `lcore-llm-api-key`, `ngui-llm-api-key` |
 | ConfigMap | 3 | `ngui-mcp-config`, `llamastack-run`, `lightspeed-stack` |
 | ServiceAccount | 5 | `genie-obs-mcp-server`, `mcp-kubernetes`, `ngui-mcp`, `lightspeed-core`, `consoleplugin-patcher` |
 | Deployment | 4 | `genie-obs-mcp-server`, `mcp-kubernetes`, `ngui-mcp`, `lightspeed-core` |

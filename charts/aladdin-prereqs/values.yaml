@@ -1,14 +1,6 @@
 # Default values for aladdin-prereqs
 # This is a YAML-formatted file.
 
-# LLM API configuration
-llm:
-  # API key for OpenAI (or compatible provider)
-  # This should be overridden via --set or values file
-  apiKey: ""
-  # Secret name for API keys
-  secretName: llm-api-key
-
 # Obs MCP Server configuration
 obsMcp:
   enabled: true
@@ -68,6 +60,12 @@ nguiMcp:
 # Lightspeed Core configuration
 lightspeedCore:
   enabled: true
+  # LLM configuration
+  llm:
+    # LLM API key (required)
+    apiKey: ""
+    # Secret name for the API key
+    apiKeySecretName: lcore-llm-api-key
   image:
     repository: quay.io/bparees/lightspeed-core
     tag: latest
