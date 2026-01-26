@@ -8,13 +8,6 @@ llm:
   apiKey: ""
   # Secret name for API keys
   secretName: llm-api-key
-  # LLM provider settings
-  config:
-    provider:
-      name: OpenAI
-      type: openai
-      url: "https://api.openai.com/v1"
-    model: gpt-4o-mini
 
 # Obs MCP Server configuration
 obsMcp:
