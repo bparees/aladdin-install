@@ -136,8 +136,9 @@ By default this chart uses a set of images that live under quay.io/bparees, but 
 #### NextGenUI MCP Server
 
 1. Clone https://github.com/RedHat-UX/next-gen-ui-agent/
-1. `cd libs/next_gen_ui_mcp/`
-1. `podman build -t quay.io/<your quay org>/nextgenui-mcp:<some-tag>`
+1. `./get-pants.sh` - only need to run this once to install `pants`
+1. `pants package --filter-target-type=docker_image ::` - this builds the images
+1. `podman tag quay.io/next-gen-ui/mcp:dev quay.io/<your quay org>/nextgenui-mcp:<some-tag>`
 1. `podman push quay.io/<your quay org>/nextgenui-mcp:<some-tag>`
 1. Ensure the quay repository is public
 1. Override the `nguiMcp.image.repository` and `nguiMcp.image.tag` chart parameters
