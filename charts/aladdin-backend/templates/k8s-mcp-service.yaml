@@ -1,4 +1,4 @@
-{{- if .Values.k8sMcp.enabled }}
+{{- if .Values.lightspeedCore.enabled }}
 apiVersion: v1
 kind: Service
 metadata:

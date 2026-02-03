@@ -1,6 +1,20 @@
 # Default values for aladdin-backend
 # This is a YAML-formatted file.
 
+aladdin:
+  systemPrompt: |
+    You are Aladdin, an AI assistant to help users to get all information about the connected Openshift cluster and its metrics.
+
+    Follow these STEPS:
+      1. Try to detect the intent of the user query and call appropriate tools to get the data.
+      2. Based on the data received from tool calls and user intent, decide if you need to generate a UI component.
+        Be proactive in generating UI components to enhance user experience and ALWAYS use the tool "generate_ui_component" to generate UI.
+      3. To call tool "generate_ui_component" pass these arguments:
+        - data: must be exactly same data received from the tool call. Do not modify anything, just copy data as is.
+        - data_type: must be exactly same as tool call name.
+      4. If the tool "generate_ui_component" is successfully called, do not generate component in your final text response.
+      5. If the tool "generate_ui_component" is not successfull, provide the final answer to the user in markdown format.
+
 # Obs MCP Server configuration
 obsMcp:
   enabled: true
@@ -18,8 +32,8 @@ obsMcp:
   prometheusUrl: "https://prometheus-k8s.openshift-monitoring.svc:9091"
 
 # Kubernetes MCP Server configuration
+# Note: k8s MCP server is only deployed when lightspeedCore.enabled is true
 k8sMcp:
-  enabled: true
   image:
     repository: quay.io/bparees/k8s-mcp
     tag: latest
@@ -59,7 +73,7 @@ nguiMcp:
 
 # Lightspeed Core configuration
 lightspeedCore:
-  enabled: true
+  enabled: false
   # LLM configuration
   llm:
     # LLM API key (required)
@@ -85,12 +99,18 @@ lightspeedCore:
     defaultProvider: openai
   # MCP servers configuration
   mcpServers:
-    obs:
-      url: "http://genie-obs-mcp-server:8080/mcp"
-    kube:
+    - name: obs
+      url: "http://genie-obs-mcp-server.openshift-aladdin:8080/mcp"
+      authorization_headers:
+        Authorization: "kubernetes"    # Uses user's k8s token from request auth
+    - name: kube
       url: "http://mcp-kubernetes-svc:8080/mcp"
-    ngui:
-      url: "http://ngui-mcp:9200/mcp"
+      authorization_headers:
+        Authorization: "kubernetes"    # Uses user's k8s token from request auth
+    - name: ngui
+      url: "http://ngui-mcp.openshift-aladdin:9200/mcp"
+      authorization_headers:
+        Authorization: "kubernetes"    # Uses user's k8s token from request auth
   # LlamaStack run.yaml configuration
   models:
     providerId: openai
@@ -99,10 +119,57 @@ lightspeedCore:
     modelType: llm
     providerModelId: gpt-4o-mini
 
+# OLS Subscription configuration
+# Creates a Subscription for the Lightspeed operator
+olsSubscription:
+  name: lightspeed-operator
+  namespace: openshift-lightspeed
+  channel: stable
+  installPlanApproval: Automatic
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  # startingCSV: lightspeed-operator.v1.0.9
+  # OperatorGroup configuration
+  # operatorGroupName defaults to namespace if not specified
+  operatorGroupName: openshift-lightspeed
+  # targetNamespaces defines which namespaces the operator watches
+  # Empty list = AllNamespaces mode (cluster-scoped)
+  # Single namespace = OwnNamespace mode
+  # Multiple namespaces = MultiNamespace mode
+  targetNamespaces: ["openshift-lightspeed"]
+
+# OLSConfig configuration
+# Creates an OLSConfig custom resource for the Lightspeed operator
+olsConfig:
+  enabled: true
+  llm:
+    # LLM API key (required)
+    apiKey: ""
+    # Secret name for the API key
+    apiKeySecretName: ols-llm-api-key
+    providers:
+      - credentialsSecretName: ols-llm-api-key
+        models:
+          - gpt-4o-mini
+        name: OpenAI
+        type: openai
+        url: "https://api.openai.com/v1"
+  ols:
+    defaultModel: gpt-4o-mini
+    defaultProvider: OpenAI
+  mcpServers:
+    obs:
+      url: "http://genie-obs-mcp-server.openshift-aladdin:8080/mcp"
+    # - name: kube
+    #   url: "http://mcp-kubernetes-svc:8080/mcp"
+    ngui:
+      url: "http://ngui-mcp.openshift-aladdin:9200/mcp"
+
+
 # ConsolePlugin patch configuration
 # Patches an existing ConsolePlugin to point the "ols" proxy to lightspeed-core
+# Note: Only applied when lightspeedCore.enabled is true
 consolePluginPatch:
-  enabled: true
   # Name of the ConsolePlugin to patch
   pluginName: genie-web-client
   # Service to point the proxy to

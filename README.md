@@ -4,15 +4,36 @@ This Helm chart installs the backend components required for the Aladdin AI assi
 
 ## Overview
 
-The chart deploys the following components:
+The chart supports two backend options for orchestrating LLM interactions:
+
+1. **OLS (OpenShift Lightspeed)** - The default backend. Installs the Red Hat Lightspeed operator from OperatorHub.
+2. **Lightspeed Core** - An alternative backend that deploys lightspeed-core as the inference/mcp api provider
+
+### Common Components (deployed with both backends)
 
 | Component | Description |
 |-----------|-------------|
-| **LLM API Secret** | API key secret for LLM provider access |
 | **Obs MCP Server** | Observability MCP server for cluster metrics and monitoring data |
 | **K8S MCP Server** | Kubernetes MCP server for cluster resource access |
 | **NextGenUI MCP Server** | UI component generation MCP server |
+
+### OLS Backend Components (default)
+
+| Component | Description |
+|-----------|-------------|
+| **OLS Namespace** | Creates the `openshift-lightspeed` namespace |
+| **OLS OperatorGroup** | OperatorGroup for the Lightspeed operator |
+| **OLS Subscription** | Subscription to install the Lightspeed operator from OperatorHub |
+| **OLS API Key Secret** | Secret containing the LLM API key |
+| **OLSConfig** | Custom resource that configures the Lightspeed operator |
+
+### Lightspeed Core Backend Components (alternative)
+
+| Component | Description |
+|-----------|-------------|
 | **Lightspeed Core** | Core service that orchestrates LLM interactions and MCP servers |
+| **LLM API Secret** | API key secret for LLM provider access |
+| **ConsolePlugin Patch** | Job that patches the web client to point to lightspeed-core |
 
 ## Prerequisites
 
@@ -56,7 +77,11 @@ $ helm upgrade -i genie-web-client ./charts/openshift-console-plugin \
 
 Once you have the prereq steps completed, you can switch to the aladdin-installer repo to install the backend aladdin helm chart.
 
-### Basic Installation
+Choose one of the two backend options below:
+
+### Option 1: Install with OLS Backend (Default)
+
+The OLS (OpenShift Lightspeed) backend installs the Red Hat Lightspeed operator from OperatorHub and configures it via an OLSConfig custom resource. This is the default option.
 
 ```bash
 export LLM_API_KEY=<your llm api key>
@@ -64,18 +89,72 @@ export LLM_API_KEY=<your llm api key>
 helm upgrade -i aladdin-backend ./charts/aladdin-backend \
   -n openshift-aladdin \
   --create-namespace \
+  --set olsConfig.llm.apiKey=$LLM_API_KEY \
+  --set nguiMcp.apiKey=$LLM_API_KEY
+```
+
+When it finishes the chart will print out the URL needed to access the aladdin console.
+
+#### OLS with Custom Model/Provider
+
+By default OLS is configured to use the OpenAI provider with the gpt-5-mini model. To use a different provider or model:
+
+```bash
+helm upgrade -i aladdin-backend ./charts/aladdin-backend \
+  -n openshift-aladdin \
+  --create-namespace \
+  --set olsConfig.llm.apiKey=$LLM_API_KEY \
+  --set nguiMcp.apiKey=$LLM_API_KEY \
+  --set olsConfig.llm.providers[0].name=Anthropic \
+  --set olsConfig.llm.providers[0].type=anthropic \
+  --set olsConfig.llm.providers[0].models[0]=claude-3-sonnet \
+  --set olsConfig.ols.defaultModel=claude-3-sonnet \
+  --set olsConfig.ols.defaultProvider=Anthropic
+```
+
+### Option 2: Install with Lightspeed Core Backend
+
+The Lightspeed Core backend deploys+configures the lightspeed-core service for llm inference and mcp server interaction.
+
+```bash
+export LLM_API_KEY=<your llm api key>
+
+helm upgrade -i aladdin-backend ./charts/aladdin-backend \
+  -n openshift-aladdin \
+  --create-namespace \
+  --set olsConfig.enabled=false \
+  --set lightspeedCore.enabled=true \
   --set lightspeedCore.llm.apiKey=$LLM_API_KEY \
   --set nguiMcp.apiKey=$LLM_API_KEY
 ```
 
-When it finishes the chart will print out the URL need to access the aladdin console.
+#### Lightspeed Core with Custom Model/Provider
+
+By default Lightspeed Core is configured to use the OpenAI provider with the gpt-5-mini model. To use a different provider or model:
+
+```bash
+helm upgrade -i aladdin-backend ./charts/aladdin-backend \
+  -n openshift-aladdin \
+  --create-namespace \
+  --set olsConfig.enabled=false \
+  --set lightspeedCore.enabled=true \
+  --set lightspeedCore.llm.apiKey=$LLM_API_KEY \
+  --set nguiMcp.apiKey=$LLM_API_KEY \
+  --set lightspeedCore.models.providerId=anthropic \
+  --set lightspeedCore.models.providerType=remote::anthropic \
+  --set lightspeedCore.models.modelId=claude-3-sonnet \
+  --set lightspeedCore.models.providerModelId=claude-3-sonnet-20240229
+```
 
 ### Installation with Custom Values File
 
+You can also use a values file instead of command line parameters:
+
+#### OLS Backend Values File
+
 ```bash
-# Create a custom values file
 cat > my-values.yaml <<EOF
-lightspeedCore:
+olsConfig:
   llm:
     apiKey: "sk-..."
 nguiMcp:
@@ -87,19 +166,25 @@ helm upgrade -i aladdin-backend ./charts/aladdin-backend \
   --create-namespace \
   -f my-values.yaml
 ```
-### Installation with customized model + provider
-By default this chart configures llamastack and Lightspeed Core to use the openai provider with the gpt-4o-mini model.  If you want to use a different provider or model you can override the parameter values by customizing the [charts/aladdin-backend/values.yaml](charts/aladdin-backend/values.yaml), or on the command line:
+
+#### Lightspeed Core Backend Values File
 
 ```bash
+cat > my-values.yaml <<EOF
+olsConfig:
+  enabled: false
+lightspeedCore:
+  enabled: true
+  llm:
+    apiKey: "sk-..."
+nguiMcp:
+  apiKey: "sk-..."
+EOF
+
 helm upgrade -i aladdin-backend ./charts/aladdin-backend \
   -n openshift-aladdin \
   --create-namespace \
-  --set lightspeedCore.llm.apiKey=$LLM_API_KEY \
-  --set nguiMcp.apiKey=$LLM_API_KEY \
-  --set lightspeedCore.models.providerId=anthropic \
-  --set lightspeedCore.models.providerType=remote::anthropic \
-  --set lightspeedCore.models.modelId=claude-3-sonnet \
-  --set lightspeedCore.models.providerModelId=claude-3-sonnet-20240229
+  -f my-values.yaml
 ```
 
 
@@ -170,9 +255,10 @@ The chart exposes a number of parameters that can be customized to alter the bac
 
 #### Kubernetes MCP Server Parameters
 
+Note: The K8S MCP server is only deployed when `lightspeedCore.enabled` is `true`.
+
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `k8sMcp.enabled` | Enable K8S MCP server | `true` |
 | `k8sMcp.image.repository` | Container image repository | `quay.io/bparees/k8s-mcp` |
 | `k8sMcp.image.tag` | Container image tag | `latest` |
 | `k8sMcp.image.pullPolicy` | Image pull policy | `Always` |
@@ -200,11 +286,36 @@ The chart exposes a number of parameters that can be customized to alter the bac
 | `nguiMcp.env.tools` | Enabled MCP tools | `generate_ui_component` |
 | `nguiMcp.env.structuredOutputEnabled` | Enable structured output | `false` |
 
+#### OLS Subscription Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `olsSubscription.name` | Subscription name | `lightspeed-operator` |
+| `olsSubscription.namespace` | Namespace for the operator | `openshift-lightspeed` |
+| `olsSubscription.channel` | Subscription channel | `stable` |
+| `olsSubscription.installPlanApproval` | Install plan approval mode | `Automatic` |
+| `olsSubscription.source` | Catalog source | `redhat-operators` |
+| `olsSubscription.sourceNamespace` | Catalog source namespace | `openshift-marketplace` |
+| `olsSubscription.operatorGroupName` | OperatorGroup name | `openshift-lightspeed` |
+| `olsSubscription.targetNamespaces` | Target namespaces for the operator | `["openshift-lightspeed"]` |
+
+#### OLS Config Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `olsConfig.enabled` | Enable OLS backend (controls all OLS resources) | `true` |
+| `olsConfig.llm.apiKey` | LLM API key (required) | `""` |
+| `olsConfig.llm.apiKeySecretName` | Name of the API key secret | `ols-llm-api-key` |
+| `olsConfig.llm.providers` | Array of LLM provider configurations | See values.yaml |
+| `olsConfig.ols.defaultModel` | Default model to use | `gpt-5-mini` |
+| `olsConfig.ols.defaultProvider` | Default provider to use | `OpenAI` |
+| `olsConfig.mcpServers` | MCP server configuration for OLS | See values.yaml |
+
 #### Lightspeed Core Parameters
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `lightspeedCore.enabled` | Enable Lightspeed Core | `true` |
+| `lightspeedCore.enabled` | Enable Lightspeed Core | `false` |
 | `lightspeedCore.llm.apiKey` | LLM API key (required) | `""` |
 | `lightspeedCore.llm.apiKeySecretName` | Name of the API key secret | `lcore-llm-api-key` |
 | `lightspeedCore.image.repository` | Container image repository | `quay.io/bparees/lightspeed-core` |
@@ -227,9 +338,10 @@ The chart exposes a number of parameters that can be customized to alter the bac
 
 #### ConsolePlugin Patch Parameters
 
+Note: ConsolePlugin patching is automatically enabled when `lightspeedCore.enabled` is `true`.
+
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `consolePluginPatch.enabled` | Enable ConsolePlugin patching | `true` |
 | `consolePluginPatch.pluginName` | Name of ConsolePlugin to patch | `genie-web-client` |
 | `consolePluginPatch.targetService.name` | Service name to point proxy to | `lightspeed-core` |
 | `consolePluginPatch.targetService.namespace` | Service namespace | `openshift-aladdin` |
@@ -252,13 +364,39 @@ The following values are hardcoded in the templates and cannot be overridden:
 
 ## Resources Created
 
+### Common Resources (both backends)
+
 | Resource Type | Count | Names |
 |---------------|-------|-------|
-| Secret | 2 | `lcore-llm-api-key`, `ngui-llm-api-key` |
-| ConfigMap | 3 | `ngui-mcp-config`, `llamastack-run`, `lightspeed-stack` |
-| ServiceAccount | 5 | `genie-obs-mcp-server`, `mcp-kubernetes`, `ngui-mcp`, `lightspeed-core`, `consoleplugin-patcher` |
-| Deployment | 4 | `genie-obs-mcp-server`, `mcp-kubernetes`, `ngui-mcp`, `lightspeed-core` |
-| Service | 4 | `genie-obs-mcp-server`, `mcp-kubernetes-svc`, `ngui-mcp`, `lightspeed-core` |
+| Secret | 1 | `ngui-llm-api-key` |
+| ConfigMap | 1 | `ngui-mcp-config` |
+| ServiceAccount | 3 | `genie-obs-mcp-server`, `mcp-kubernetes`, `ngui-mcp` |
+| Deployment | 3 | `genie-obs-mcp-server`, `mcp-kubernetes`, `ngui-mcp` |
+| Service | 3 | `genie-obs-mcp-server`, `mcp-kubernetes-svc`, `ngui-mcp` |
+
+### OLS Backend Resources (default)
+
+| Resource Type | Count | Names | Notes |
+|---------------|-------|-------|-------|
+| Namespace | 1 | `openshift-lightspeed` | Created via pre-install hook |
+| OperatorGroup | 1 | `openshift-lightspeed` | Created via pre-install hook |
+| Subscription | 1 | `lightspeed-operator` | Installs the Lightspeed operator |
+| Secret | 1 | `ols-llm-api-key` | In `openshift-lightspeed` namespace |
+| OLSConfig | 1 | `cluster` | Created via post-install hook after CRD is available |
+| ServiceAccount | 1 | `ols-crd-wait-sa` | Helm hook, deleted after success |
+| ClusterRole | 1 | `ols-crd-wait-role` | Helm hook, deleted after success |
+| ClusterRoleBinding | 1 | `ols-crd-wait-rolebinding` | Helm hook, deleted after success |
+| Job | 1 | `ols-wait-for-crd` | Waits for OLS CRD, deleted after success |
+
+### Lightspeed Core Backend Resources (alternative)
+
+| Resource Type | Count | Names |
+|---------------|-------|-------|
+| Secret | 1 | `lcore-llm-api-key` |
+| ConfigMap | 2 | `llamastack-run`, `lightspeed-stack` |
+| ServiceAccount | 2 | `lightspeed-core`, `consoleplugin-patcher` |
+| Deployment | 1 | `lightspeed-core` |
+| Service | 1 | `lightspeed-core` |
 | Job | 1 | `consoleplugin-patcher` (post-install hook) |
 | ClusterRole | 1 | `<namespace>-consoleplugin-patcher` |
 | ClusterRoleBinding | 1 | `<namespace>-consoleplugin-patcher` |
