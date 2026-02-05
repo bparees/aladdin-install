@@ -4,6 +4,9 @@ Aladdin Backend has been installed!
 
 1. Verify all pods are running:
    oc get pods -n {{ .Release.Namespace }}
+{{- if .Values.olsConfig.enabled }}
+   oc get pods -n {{ .Values.olsSubscription.namespace }}
+{{- end }}
 
 {{- $ingress := (lookup "config.openshift.io/v1" "Ingress" "" "cluster") }}
 {{- if $ingress }}

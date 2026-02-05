@@ -10,7 +10,7 @@ data:
   lightspeed-stack.yaml: |
     name: Lightspeed Core Service (LCS)
     service:
-      log_level: "debug"
+      log_level: "info"
       host: 0.0.0.0
       port: {{ .Values.lightspeedCore.containerPort }}
       tls_config:
@@ -37,33 +37,19 @@ data:
       default_model: {{ .Values.lightspeedCore.models.modelId }}
       default_provider: {{ .Values.lightspeedCore.models.providerId }}
     mcp_servers:
-      - name: "obs"
+      {{- range .Values.lightspeedCore.mcpServers }}
+      - name: {{ .name | quote }}
         provider_id: "model-context-protocol"
-        url: {{ .Values.lightspeedCore.mcpServers.obs.url | quote }}
+        url: {{ .url | quote }}
+        {{- if .authorization_headers }}
         authorization_headers:
-          Authorization: "kubernetes"    # Uses user's k8s token from request auth
-      - name: "kube"
-        provider_id: "model-context-protocol"
-        url: {{ .Values.lightspeedCore.mcpServers.kube.url | quote }}
-        authorization_headers:
-          Authorization: "kubernetes"    # Uses user's k8s token from request auth
-      - name: "ngui"
-        provider_id: "model-context-protocol"
-        url: {{ .Values.lightspeedCore.mcpServers.ngui.url | quote }}
-        authorization_headers:
-          Authorization: "kubernetes"    # Uses user's k8s token from request auth
+          {{- range $key, $value := .authorization_headers }}
+          {{ $key }}: {{ $value | quote }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
     customization:
-      system_prompt: |-
-        You are Aladdin, an AI assistant to help users to get all information about the connected Openshift cluster and its metrics.
-
-        Follow these STEPS:
-          1. Try to detect the intent of the user query and call appropriate tools to get the data.
-          2. Based on the data received from tool calls and user intent, decide if you need to generate a UI component.
-            Be proactive in generating UI components to enhance user experience and ALWAYS use the tool "generate_ui_component" to generate UI.
-          3. To call tool "generate_ui_component" pass these arguments:
-            - data: must be exactly same data received from the tool call. Do not modify anything, just copy data as is.
-            - data_type: must be exactly same as tool call name.
-          4. If the tool "generate_ui_component" is successfully called, do not generate component in your final text response.
-          5. If the tool "generate_ui_component" is not successfull, provide the final answer to the user in markdown format.
+      system_prompt: |
+{{ .Values.aladdin.systemPrompt | indent 8 }}
 {{- end }}
 
