@@ -167,14 +167,18 @@ olsConfig:
 
 
 # ConsolePlugin patch configuration
-# Patches an existing ConsolePlugin to point the "ols" proxy to lightspeed-core
-# Note: Only applied when lightspeedCore.enabled is true
+# Patches an existing ConsolePlugin to point the "ols" proxy to the configured backend service (OLS or LCORE)
 consolePluginPatch:
   # Name of the ConsolePlugin to patch
   pluginName: genie-web-client
-  # Service to point the proxy to
-  targetService:
+  # Service to point the proxy to when using lightspeedCore
+  lcoreTargetService:
     name: lightspeed-core
     namespace: openshift-aladdin
+    port: 8443
+  # Service to point the proxy to when using OLS
+  olsTargetService:
+    name: lightspeed-app-server
+    namespace: openshift-lightspeed
     port: 8443
 

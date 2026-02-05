@@ -1,4 +1,3 @@
-{{- if .Values.lightspeedCore.enabled }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -71,10 +70,15 @@ spec:
             - |
               echo "Patching ConsolePlugin {{ .Values.consolePluginPatch.pluginName }}..."
               oc patch consoleplugin {{ .Values.consolePluginPatch.pluginName }} --type='json' -p='[
-                {"op": "replace", "path": "/spec/proxy/0/endpoint/service/name", "value": "{{ .Values.consolePluginPatch.targetService.name }}"},
-                {"op": "replace", "path": "/spec/proxy/0/endpoint/service/namespace", "value": "{{ .Values.consolePluginPatch.targetService.namespace }}"},
-                {"op": "replace", "path": "/spec/proxy/0/endpoint/service/port", "value": {{ .Values.consolePluginPatch.targetService.port }}}
+                {{- if .Values.lightspeedCore.enabled }}
+                {"op": "replace", "path": "/spec/proxy/0/endpoint/service/name", "value": "{{ .Values.consolePluginPatch.lcoreTargetService.name }}"},
+                {"op": "replace", "path": "/spec/proxy/0/endpoint/service/namespace", "value": "{{ .Values.consolePluginPatch.lcoreTargetService.namespace }}"},
+                {"op": "replace", "path": "/spec/proxy/0/endpoint/service/port", "value": {{ .Values.consolePluginPatch.lcoreTargetService.port }}}
+                {{- else }}
+                {"op": "replace", "path": "/spec/proxy/0/endpoint/service/name", "value": "{{ .Values.consolePluginPatch.olsTargetService.name }}"},
+                {"op": "replace", "path": "/spec/proxy/0/endpoint/service/namespace", "value": "{{ .Values.consolePluginPatch.olsTargetService.namespace }}"},
+                {"op": "replace", "path": "/spec/proxy/0/endpoint/service/port", "value": {{ .Values.consolePluginPatch.olsTargetService.port }}}
+                {{- end }}
               ]'
               echo "ConsolePlugin patched successfully."
-{{- end }}
 
