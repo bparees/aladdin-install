@@ -192,6 +192,7 @@ helm upgrade -i aladdin-backend ./charts/aladdin-backend \
 
 ```bash
 helm uninstall aladdin-backend -n openshift-aladdin
+oc delete ns openshift-aladdin
 ```
 
 **Note:** The ClusterRoleBinding is cluster-scoped and will be deleted. Secrets and ConfigMaps will also be removed.
