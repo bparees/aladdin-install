@@ -36,7 +36,7 @@ spec:
     defaultProvider: {{ .Values.olsConfig.ols.defaultProvider }}
     introspectionEnabled: true
     querySystemPrompt: |
-{{ .Values.aladdin.systemPrompt | indent 6 }}
+{{ .Files.Get "files/prompts/system-prompt.txt" | indent 6 }}
   mcpServers:
     - name: obs
       streamableHTTP:
