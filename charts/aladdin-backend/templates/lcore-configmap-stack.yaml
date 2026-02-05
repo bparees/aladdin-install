@@ -50,6 +50,6 @@ data:
       {{- end }}
     customization:
       system_prompt: |
-{{ .Values.aladdin.systemPrompt | indent 8 }}
+{{ .Files.Get "files/prompts/system-prompt.txt" | indent 8 }}
 {{- end }}
 
